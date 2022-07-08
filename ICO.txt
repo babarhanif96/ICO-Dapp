@@ -1,0 +1,167 @@
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface IERC20 {
+
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
+    function transfer(address recipient, uint256 amount) external returns (bool);
+    function allowance(address owner, address spender) external view returns (uint256);
+    function approve(address spender, uint256 amount) external returns (bool);
+    function name() external view returns(string memory);
+    function symbol() external view returns(string memory);
+    function decimals() external view  returns (uint8);
+    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+
+
+contract ICOSale {
+    IERC20 public token;
+    address public owner;
+    uint256 public tokensOffered;
+    uint256 public openingTime;
+    uint256 public closingTime;
+    uint256 public tokenPrice;
+    uint256 public minBuy;
+    uint256 public maxBuy;
+    uint256 public tokensSold;
+    uint256 public BNBCollected;
+    uint256 public hardCap;
+    uint256 public softCap;
+    address public admin;
+    mapping (address=>bool) public ExistenceCheck;
+    uint256 public contributors;
+    mapping (address=>uint256)public BNBinvested;
+    mapping (address=>uint256) public tokenInvested;
+
+
+    constructor(
+                IERC20 _token,
+                address _owner,
+                uint256 _tokensOffered,
+                uint256 _openingTime,
+                uint256 _closingTime,
+                uint256 _tokenPrice,
+                uint256 _minBuy,
+                uint256 _maxBuy,
+                uint256 _hardCap,
+                uint256 _softCap
+                ){
+                
+                token = IERC20(_token);
+                owner = _owner; //0xdD65C7f79547Cb50e429df366A0fab903642192F;// 
+                tokensOffered = _tokensOffered; //100000000000000; //
+                openingTime = _openingTime; //1651842779;//
+                closingTime = _closingTime;// 1651842779 + (60*60*24*3);//
+                tokenPrice = _tokenPrice; // 100000000000000;//
+                minBuy = _minBuy; //100000000000000;//
+                maxBuy = _maxBuy;//10000000000000000000;//
+                hardCap = _hardCap; //100000000000000;//
+                softCap = _softCap;
+                admin = msg.sender;
+                }
+
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Ownable: caller is not the owner");
+        _;
+    } 
+
+    function buyTokens() public payable {
+        require (msg.value >0, "Amount cannot be zero");
+        uint256 numberOfTokens = msg.value * (10 ** token.decimals()) / tokenPrice  ;
+        require(openingTime <= block.timestamp,"Trading has not yet started");
+        require(closingTime >= block.timestamp,"Trading has been closed");
+        require(msg.value>=minBuy,"This is less than minimum threshold");
+        require(msg.value<=maxBuy,"This is more than maximum threshold");
+        require((tokensSold+numberOfTokens)<=hardCap,"We have reached the hardCap");
+        require(token.allowance(owner,address(this))>=numberOfTokens,"Insufficient Allowance by owner");
+        payable(owner).transfer(msg.value);
+        token.transferFrom(owner,msg.sender,numberOfTokens);
+        BNBCollected+=msg.value;
+        if(!ExistenceCheck[msg.sender]){
+          contributors++;
+          ExistenceCheck[msg.sender]=true;
+        }
+        BNBinvested[msg.sender]+=msg.value;
+        tokenInvested[msg.sender]+=numberOfTokens;
+
+    }   
+
+    function changeOpeningTime(uint256 newtime) public onlyAdmin {
+        openingTime = newtime;
+    }
+
+    function changeClosing(uint256 newtime) public onlyAdmin {
+        closingTime = newtime;
+    }
+
+    function changeTokePrice(uint256 newPrice) public onlyAdmin {
+        tokenPrice = newPrice;
+    }
+
+    function changeHardCap(uint256 newCap) public onlyAdmin {
+        hardCap = newCap;
+    }
+
+    receive() external payable {
+    buyTokens();
+    }
+
+struct AllocationStruct {
+    string name;
+    uint256 value;
+    
+}
+
+struct DataStruct{
+    address Token;
+    string tokenName;
+    string tokenSymbol;
+    uint256 tokenDecimal;
+    uint256 tokenTotalSupply;
+    uint256 tokenPrice;
+    uint256 tokensOffered;
+    uint256 openingTime;
+    uint256 closingtime;
+    uint256 minBuy;
+    uint256 maxBuy;
+    uint256 hardCap;
+    uint256 contributors;
+    uint256 BNBcollected;
+    
+
+}
+
+AllocationStruct[] public AllocationArray;
+uint256 public AllocationTotal;
+
+    function setAllocation(string memory _name,uint256 _value) public onlyAdmin {
+        AllocationStruct memory tx1 = AllocationStruct(_name,_value);
+        AllocationArray.push(tx1);
+        AllocationTotal+=_value;
+    }
+
+    function resetAllocation() public onlyAdmin {
+        delete AllocationArray;
+    }
+
+function getArray() public view returns(AllocationStruct[] memory){
+//    AllocationStruct[] memory localArray = new AllocationStruct[](AllocationArray.length);
+
+    return AllocationArray;
+}
+
+    function getData() public view returns(DataStruct memory){
+    IERC20 _token = IERC20(token);
+    string memory _name = _token.name();
+    string memory _symbol = _token.symbol();
+    uint256 _decimal = _token.decimals();
+    uint256 _totalSupply = _token.totalSupply();
+    DataStruct memory tx1 = DataStruct(address(token),_name,_symbol,_decimal,_totalSupply,tokenPrice,tokensOffered,openingTime,closingTime,minBuy,maxBuy,hardCap,contributors,BNBCollected);
+    return tx1;
+}
+
+}

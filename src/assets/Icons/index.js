@@ -1,0 +1,14 @@
+export { ReactComponent as TelegramIcon } from "./telegram.svg";
+export { ReactComponent as TwitterIcon } from "./twitter.svg";
+export { ReactComponent as InstagramIcon } from "./instagram.svg";
+export { ReactComponent as FacebookIcon } from "./facebook.svg";
+export { ReactComponent as WhitePaperIcon } from "./white-paper.svg";
+export { ReactComponent as SecurityAuditReportIcon } from "./security-audit-report.svg";
+export { ReactComponent as TokenExplorerBscScanIcon } from "./token-explorer-bsc-scan.svg";
+export { ReactComponent as CopyIcon } from "./copy.svg";
+export { ReactComponent as CopiedIcon } from "./copied.svg";
+export { ReactComponent as BinanaceUsdIcon } from "./binance-usd.svg";
+export { ReactComponent as TetherUsdtIcon } from "./tether-usdt.svg";
+export { ReactComponent as UsdCoinIcon } from "./usd-coin.svg";
+export { ReactComponent as BnbIcon } from "./bnb.svg";
+export { ReactComponent as DropdownArrowIcon } from "./dropdown-arrow.svg";
